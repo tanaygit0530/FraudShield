@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import SecurityPage from './pages/SecurityPage.jsx';
+import HistoryPage from './pages/HistoryPage.jsx';
 import ReportFraud from './pages/ReportFraud.jsx';
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
@@ -17,6 +18,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/security" element={<SecurityPage />} />
+            <Route path="/history" element={<HistoryPage />} />
             <Route path="/report" element={<ReportFraud />} />
           </Routes>
         </main>

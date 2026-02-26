@@ -7,6 +7,28 @@ import {
 import { Link } from 'react-router-dom';
 
 const LandingPage = () => {
+  const [latestCase, setLatestCase] = React.useState(null);
+  const [intel, setIntel] = React.useState(null);
+
+  React.useEffect(() => {
+    const fetchLatest = async () => {
+      try {
+        const res = await fetch('http://localhost:5001/api/cases');
+        const data = await res.json();
+        if (data && data.length > 0) {
+          const c = data[0];
+          setLatestCase(c);
+          const iRes = await fetch(`http://localhost:5001/api/cases/${c.id}/intelligence`);
+          const iData = await iRes.json();
+          setIntel(iData);
+        }
+      } catch (e) {
+        console.error("Home fetch error", e);
+      }
+    };
+    fetchLatest();
+  }, []);
+
   const fadeInUp = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
@@ -52,27 +74,29 @@ const LandingPage = () => {
             <div className="hero-card-container float-anim">
               <div className="glass-card hero-preview-card">
                 <div className="card-header">
-                  <Activity className="text-primary" size={24} />
+                  <Activity className="text-blue-500" size={24} />
                   <span>Real-time Recovery Panel</span>
                 </div>
                 <div className="card-stats">
                   <div className="stat">
                     <span className="label">Amount</span>
-                    <span className="value">₹1,24,000</span>
+                    <span className="value">₹{latestCase ? latestCase.amount.toLocaleString('en-IN') : '1,24,000'}</span>
                   </div>
                   <div className="stat">
                     <span className="label">Probability</span>
-                    <span className="value text-success">84%</span>
+                    <span className="value text-success">{intel ? intel.recovery_probability : '84'}%</span>
                   </div>
                 </div>
                 <div className="timeline-mini">
                   <div className="line"></div>
                   <div className="step active"></div>
                   <div className="step active"></div>
-                  <div className="step current"></div>
+                  <div className="step current outline-pulse"></div>
                   <div className="step"></div>
                 </div>
-                <p className="status-note">Lien request sent to HDFC Bank...</p>
+                <p className="status-note">
+                  {latestCase ? `Lien markup active for ${latestCase.payload.bank_name || 'beneficiary'} node...` : 'Lien request sent to HDFC Bank...'}
+                </p>
               </div>
             </div>
           </motion.div>
