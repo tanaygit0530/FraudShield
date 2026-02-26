@@ -149,7 +149,7 @@ const HistoryPage = () => {
                     </div>
                     
                     <div className="item-actions">
-                      <Link to="/dashboard" className="action-btn">
+                      <Link to={`/dashboard/${caseItem.id}`} className="action-btn">
                         Investigate <ArrowUpRight size={14} />
                       </Link>
                     </div>

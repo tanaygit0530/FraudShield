@@ -16,7 +16,7 @@ function App() {
         <main>
           <Routes>
             <Route path="/" element={<LandingPage />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard/:id?" element={<Dashboard />} />
             <Route path="/security" element={<SecurityPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/report" element={<ReportFraud />} />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Clock, Landmark, AlertTriangle, CheckCircle2, 
@@ -49,6 +50,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [isEscalating, setIsEscalating] = useState(false);
   const [timeLeft, setTimeLeft] = useState(120 * 60);
+  const { id } = useParams();
 
   useEffect(() => {
     let interval;
@@ -56,19 +58,26 @@ const Dashboard = () => {
       try {
         const casesRes = await axios.get('http://localhost:5001/api/cases');
         if (casesRes.data.length > 0) {
-          const latestCase = casesRes.data[0];
-          setCaseItem(latestCase);
+          // If ID is provided in URL, find it. Otherwise take the first (latest)
+          let targetCase;
+          if (id) {
+            targetCase = casesRes.data.find(c => c.id === id);
+          }
+          
+          if (!targetCase) {
+            targetCase = casesRes.data[0];
+          }
+
+          setCaseItem(targetCase);
           
           const fetchIntel = async () => {
             try {
-              if (isEscalating) return; // Don't poll while we are actively updating
-              const intelRes = await axios.get(`http://localhost:5001/api/cases/${latestCase.id}/intelligence`);
+              if (isEscalating) return;
+              const intelRes = await axios.get(`http://localhost:5001/api/cases/${targetCase.id}/intelligence`);
               
               setIntel(prev => {
                 const currentStatus = prev?.current_status;
                 const newStatus = intelRes.data.current_status;
-                
-                // Persistence Guard: If we are already ESCALATED, stay there unless DB confirms it
                 if (currentStatus === 'ESCALATED' && newStatus !== 'ESCALATED') {
                   return { ...intelRes.data, current_status: 'ESCALATED' };
                 }
@@ -82,7 +91,6 @@ const Dashboard = () => {
           };
 
           await fetchIntel();
-          // Real-time polling every 5 seconds
           interval = setInterval(fetchIntel, 5000);
         }
       } catch (err) {
@@ -92,8 +100,10 @@ const Dashboard = () => {
       }
     };
     fetchData();
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [id]); // Re-fetch if the URL ID changes
 
   useEffect(() => {
     if (timeLeft > 0) {
