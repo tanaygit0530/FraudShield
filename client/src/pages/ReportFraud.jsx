@@ -6,9 +6,8 @@ import {
   Fingerprint, FileLock2, ChevronLeft, Sparkles
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-
-const API_BASE = 'http://localhost:5001/api';
+import * as caseService from '../services/caseService';
+import * as authService from '../services/authService';
 
 const ReportFraud = () => {
   const [method, setMethod] = useState(null); // 'ocr' or 'manual'
@@ -40,9 +39,7 @@ const ReportFraud = () => {
     formDataFile.append('screenshot', file);
 
     try {
-      const response = await axios.post(`${API_BASE}/ingest/ocr`, formDataFile, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const response = await caseService.ingestOCR(formDataFile);
       
       const { extractedData } = response.data;
       setFormData({
@@ -73,7 +70,7 @@ const ReportFraud = () => {
   const generateOTP = async () => {
     if (!phone) return alert('Input required: Registered Mobile Number');
     try {
-      await axios.post(`${API_BASE}/otp/generate`, { phone });
+      await authService.generateOTP(phone);
       setOtpSent(true);
     } catch (err) {
       alert('Network Error: OTP Dispatch Failed');
@@ -85,11 +82,8 @@ const ReportFraud = () => {
     
     setIsSubmitting(true);
     try {
-      await axios.post(`${API_BASE}/otp/verify`, { phone, code: otpCode });
-      await axios.post(`${API_BASE}/cases`, {
-        victim_id: null,
-        payload: { ...formData, phone, entry_method: method }
-      });
+      await authService.verifyOTP(phone, otpCode);
+      await caseService.createCase({ ...formData, phone, entry_method: method });
       navigate('/dashboard');
     } catch (err) {
       alert('Vault Error: ' + (err.response?.data?.error || err.message));

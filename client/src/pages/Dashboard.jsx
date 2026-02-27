@@ -7,7 +7,7 @@ import {
   FileLock2, Lock, ArrowRight, ChevronRight,
   Database, Server, Globe, Cpu, Radio
 } from 'lucide-react';
-import axios from 'axios';
+import * as caseService from '../services/caseService';
 
 // --- Sub-components for Enterprise UI ---
 
@@ -44,6 +44,8 @@ const Shimmer = () => (
   </div>
 );
 
+import { supabase } from '../lib/supabase';
+
 const Dashboard = () => {
   const [caseItem, setCaseItem] = useState(null);
   const [intel, setIntel] = useState(null);
@@ -52,46 +54,54 @@ const Dashboard = () => {
   const [timeLeft, setTimeLeft] = useState(120 * 60);
   const { id } = useParams();
 
+  const fetchIntelData = async (targetCase) => {
+    try {
+      if (isEscalating) return;
+      const intelRes = await caseService.getCaseIntelligence(targetCase.id);
+      
+      setIntel(prev => {
+        const currentStatus = prev?.current_status;
+        const newStatus = intelRes.data.current_status;
+        // Don't revert if we just escalated locally
+        if (currentStatus === 'ESCALATED' && newStatus !== 'ESCALATED') {
+          return { ...intelRes.data, current_status: 'ESCALATED' };
+        }
+        return intelRes.data;
+      });
+
+      setTimeLeft(intelRes.data.recovery_window_mins * 60);
+    } catch (err) {
+      console.error('Intel Fetch Error:', err);
+    }
+  };
+
   useEffect(() => {
-    let interval;
     const fetchData = async () => {
       try {
-        const casesRes = await axios.get('http://localhost:5001/api/cases');
+        const casesRes = await caseService.getCases();
         if (casesRes.data.length > 0) {
-          // If ID is provided in URL, find it. Otherwise take the first (latest)
-          let targetCase;
-          if (id) {
-            targetCase = casesRes.data.find(c => c.id === id);
-          }
-          
-          if (!targetCase) {
-            targetCase = casesRes.data[0];
-          }
+          let targetCase = id ? casesRes.data.find(c => c.id === id) : casesRes.data[0];
+          if (!targetCase) targetCase = casesRes.data[0];
 
           setCaseItem(targetCase);
-          
-          const fetchIntel = async () => {
-            try {
-              if (isEscalating) return;
-              const intelRes = await axios.get(`http://localhost:5001/api/cases/${targetCase.id}/intelligence`);
-              
-              setIntel(prev => {
-                const currentStatus = prev?.current_status;
-                const newStatus = intelRes.data.current_status;
-                if (currentStatus === 'ESCALATED' && newStatus !== 'ESCALATED') {
-                  return { ...intelRes.data, current_status: 'ESCALATED' };
-                }
-                return intelRes.data;
-              });
+          await fetchIntelData(targetCase);
 
-              setTimeLeft(intelRes.data.recovery_window_mins * 60);
-            } catch (err) {
-              console.error('Intel Polling Error:', err);
-            }
+          // Subscribe to specific case changes
+          const channel = supabase
+            .channel(`case-specific-${targetCase.id}`)
+            .on('postgres_changes', 
+              { event: 'UPDATE', table: 'cases', filter: `id=eq.${targetCase.id}` }, 
+              (payload) => {
+                console.log('Live Case Update:', payload);
+                setCaseItem(payload.new);
+                fetchIntelData(targetCase);
+              }
+            )
+            .subscribe();
+
+          return () => {
+            supabase.removeChannel(channel);
           };
-
-          await fetchIntel();
-          interval = setInterval(fetchIntel, 5000);
         }
       } catch (err) {
         console.error('Fetch Error:', err);
@@ -100,10 +110,7 @@ const Dashboard = () => {
       }
     };
     fetchData();
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [id]); // Re-fetch if the URL ID changes
+  }, [id]); 
 
   useEffect(() => {
     if (timeLeft > 0) {
@@ -140,7 +147,7 @@ const Dashboard = () => {
       setIsEscalating(true);
       
       // 1. Immediate DB Update
-      const res = await axios.post(`http://localhost:5001/api/cases/${caseItem.id}/escalate`);
+      await caseService.escalateCase(caseItem.id);
       
       // 2. Immediate Local State Update (Don't wait for PDF)
       // This solves the 'flickering' and 'reverting' issue in the UI
@@ -148,10 +155,7 @@ const Dashboard = () => {
       setCaseItem(prev => ({ ...prev, status: 'ESCALATED' }));
 
       // 3. Background Legal PDF & Dispatch
-      await axios.post(`http://localhost:5001/api/generate-legal`, {
-        case_id: caseItem.id,
-        institution: 'Beneficiary Bank'
-      });
+      await caseService.generateAndSendLegalPDF(caseItem.id, 'Beneficiary Bank');
 
     } catch (err) {
       console.error('Escalation or PDF Generation failed', err);

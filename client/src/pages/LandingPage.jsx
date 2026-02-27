@@ -5,6 +5,7 @@ import {
   FileText, Search, Send, Activity, RefreshCw 
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import * as caseService from '../services/caseService';
 
 const LandingPage = () => {
   const [latestCase, setLatestCase] = React.useState(null);
@@ -13,13 +14,13 @@ const LandingPage = () => {
   React.useEffect(() => {
     const fetchLatest = async () => {
       try {
-        const res = await fetch('http://localhost:5001/api/cases');
-        const data = await res.json();
+        const res = await caseService.getCases();
+        const data = res.data;
         if (data && data.length > 0) {
           const c = data[0];
           setLatestCase(c);
-          const iRes = await fetch(`http://localhost:5001/api/cases/${c.id}/intelligence`);
-          const iData = await iRes.json();
+          const iRes = await caseService.getCaseIntelligence(c.id);
+          const iData = iRes.data;
           setIntel(iData);
         }
       } catch (e) {
