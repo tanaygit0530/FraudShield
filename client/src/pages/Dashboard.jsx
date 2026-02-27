@@ -165,6 +165,7 @@ const Dashboard = () => {
     { label: 'Fraud Reported', state: 'CREATED' },
     { label: 'Freeze Sent', state: 'ROUTED' },
     { label: 'Bank Reviewing', state: 'UNDER_BANK_REVIEW' },
+    { label: 'Freeze Confirmed', state: 'FREEZE_CONFIRMED' },
     { label: 'Partial Lien Marked', state: 'PARTIALLY_FROZEN' },
     { label: 'Escalated', state: 'ESCALATED' },
     { label: 'Funds Credited', state: 'FUNDS_CREDITED' },

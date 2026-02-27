@@ -29,6 +29,7 @@ const Navbar = () => {
           <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''}>Dashboard</Link>
           <Link to="/security" className={location.pathname === '/security' ? 'active' : ''}>Security</Link>
           <Link to="/history" className={location.pathname === '/history' ? 'active' : ''}>History</Link>
+          <Link to="/admin" className={location.pathname === '/admin' ? 'active' : ''}>B2B Console</Link>
           <Link to="/report" className="btn-primary nav-cta">Report Fraud</Link>
         </div>
       </div>

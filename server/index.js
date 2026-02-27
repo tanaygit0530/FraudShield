@@ -92,11 +92,20 @@ app.get('/api/cases/:id/intelligence', async (req, res) => {
     
     // For demo/simulated realism, we'll progress the state if it's still 'CREATED'
     let currentStatus = caseData.status;
-    if (currentStatus === 'CREATED') {
+    const currentIdx = states.indexOf(currentStatus);
+
+    if (currentIdx <= states.indexOf('CREATED')) {
       if (ageInMinutes > 10) currentStatus = 'ROUTED';
       if (ageInMinutes > 20) currentStatus = 'ACK_RECEIVED';
       if (ageInMinutes > 30) currentStatus = 'UNDER_BANK_REVIEW';
     }
+
+    // Dynamic Recovery Logic
+    if (currentStatus === 'FREEZE_CONFIRMED') recoveryProbability = 100;
+    if (currentStatus === 'PARTIALLY_FROZEN' && caseData.frozen_amount) {
+      recoveryProbability = Math.min(100, (caseData.frozen_amount / caseData.amount) * 100);
+    }
+    if (currentStatus === 'FUNDS_CREDITED') recoveryProbability = 100;
 
     // 5. Institutional Visibility
     const institutional_visibility = [
@@ -126,6 +135,7 @@ app.get('/api/cases/:id/intelligence', async (req, res) => {
       report_count: count,
       recovery_window_mins: Math.max(0, 120 - Math.round(ageInMinutes)),
       current_status: currentStatus,
+      frozen_amount: caseData.frozen_amount || 0,
       states: states,
       institutional_visibility,
       sla_label: 'Beneficiary Bank Response',
@@ -245,6 +255,7 @@ app.post('/api/cases', async (req, res) => {
       .insert([{ 
         amount: parseFloat(payload.amount),
         status: 'CREATED',
+        case_origin: req.body.origin || 'MANUAL',
         payload: protectedPayload,
         legitimacy_score: payload.legitimacy_score || 50
       }])
@@ -431,6 +442,83 @@ app.post('/api/generate-legal', async (req, res) => {
   } catch (err) {
     console.error('Legal PDF CRITICAL ERROR:', err.message);
     res.status(500).json({ error: 'PDF Automation Failed', details: err.message });
+  }
+});
+
+app.patch('/api/cases/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, frozen_amount, officer_name, total_balance } = req.body;
+    
+    console.log(`--- [ADMIN] Updating Case ${id} to ${status} ---`);
+
+    const updatePayload = { status };
+    if (frozen_amount !== undefined) updatePayload.frozen_amount = frozen_amount;
+    if (total_balance !== undefined) updatePayload.total_balance = total_balance;
+
+    const { data, error } = await supabase
+      .from('cases')
+      .update(updatePayload)
+      .eq('id', id)
+      .select();
+
+    if (error) {
+      console.error('[DATABASE_ERROR] Update Failed:', error);
+      throw error;
+    }
+
+    if (!data || data.length === 0) {
+      console.warn(`[RLS_ALERT] Update attempted but 0 rows affected for Case ${id}. This likely means an RLS Policy is missing.`);
+      return res.status(403).json({ 
+        error: 'Update rejected by database policies.',
+        details: 'Check if an UPDATE policy exists for the anon key on the cases table.'
+      });
+    }
+
+    // Log the audit event
+    await supabase.from('audit_logs').insert([{
+      case_id: id,
+      action: `BANK_ACTION_${status}`,
+      status: 'SUCCESS',
+      admin_name: officer_name || 'SYSTEM'
+    }]);
+
+    res.json(data[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/admin/analytics', async (req, res) => {
+  try {
+    const { data: cases, error } = await supabase.from('cases').select('status, amount, frozen_amount');
+    if (error) throw error;
+
+    const stats = {
+      total_cases: cases.length,
+      full_freeze: cases.filter(c => c.status === 'FREEZE_CONFIRMED').length,
+      partial_freeze: cases.filter(c => c.status === 'PARTIALLY_FROZEN').length,
+      rejected: cases.filter(c => c.status === 'REJECTED').length,
+      total_recovered: cases.reduce((sum, c) => sum + (c.frozen_amount || 0), 0)
+    };
+
+    res.json(stats);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/admin/audit-logs', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('audit_logs')
+      .select('*, cases(amount)')
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

@@ -4,6 +4,7 @@ import LandingPage from './pages/LandingPage.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import SecurityPage from './pages/SecurityPage.jsx';
 import HistoryPage from './pages/HistoryPage.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
 import ReportFraud from './pages/ReportFraud.jsx';
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
@@ -19,6 +20,7 @@ function App() {
             <Route path="/dashboard/:id?" element={<Dashboard />} />
             <Route path="/security" element={<SecurityPage />} />
             <Route path="/history" element={<HistoryPage />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/report" element={<ReportFraud />} />
           </Routes>
         </main>
