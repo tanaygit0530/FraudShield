@@ -50,7 +50,7 @@ const Dashboard = () => {
   const [caseItem, setCaseItem] = useState(null);
   const [intel, setIntel] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [timeLeft, setTimeLeft] = useState(120 * 60);
+  const [timeLeft, setTimeLeft] = useState(30 * 60);
   const { id } = useParams();
 
   const fetchIntelData = async (targetCase) => {
@@ -142,9 +142,9 @@ const Dashboard = () => {
   // handleEscalate removed - Moved to Admin Terminal
 
   const milestones = [
-    { label: 'Fraud Reported', state: 'CREATED' },
-    { label: 'Freeze Sent', state: 'ROUTED' },
-    { label: 'Bank Reviewing', state: 'UNDER_BANK_REVIEW' },
+    { label: 'Fraud Reported', state: 'INGESTED' },
+    { label: 'Freeze Sent', state: 'FREEZE_SENT' },
+    { label: 'Bank Reviewing', state: 'BANK_REVIEW' },
     { label: 'Freeze Confirmed', state: 'FREEZE_CONFIRMED' },
     { label: 'Partial Lien Marked', state: 'PARTIALLY_FROZEN' },
     { label: 'Escalated', state: 'ESCALATED' },
@@ -153,10 +153,25 @@ const Dashboard = () => {
 
   const getMilestoneStatus = (milestoneState) => {
     if (!intel) return 'pending';
-    const currentIdx = intel.states.indexOf(intel.current_status);
-    const targetIdx = intel.states.indexOf(milestoneState);
+    const currentStatus = intel.current_status;
+    const allStates = intel.states;
+    const currentIdx = allStates.indexOf(currentStatus);
+    const targetIdx = allStates.indexOf(milestoneState);
+
+    // Special handling for REJECTED
+    if (currentStatus === 'REJECTED') {
+      if (milestoneState === 'REJECTED') return 'rejected';
+      if (targetIdx < allStates.indexOf('REJECTED')) return 'completed';
+      return 'disabled';
+    }
+
+    // Normal Flow
     if (currentIdx > targetIdx) return 'completed';
-    if (currentIdx === targetIdx) return 'current';
+    if (currentIdx === targetIdx) {
+      // If it's the final state, show it as completed instead of loading
+      if (currentStatus === 'FUNDS_CREDITED') return 'completed';
+      return 'current';
+    }
     return 'pending';
   };
 
@@ -342,35 +357,51 @@ const Dashboard = () => {
               </div>
             </motion.div>
 
-            <motion.div className="ent-card" variants={itemVariants}>
-              <div className="card-header">
-                <div className="title-pair">
-                  <Activity size={14} className="icon-blue" />
-                  <h4>Live Recovery Timeline</h4>
+            {intel?.current_status === 'REJECTED' ? (
+              <motion.div className="ent-card rejected-notice-card" variants={itemVariants}>
+                <div className="flex items-center gap-6">
+                  <div className="rejected-icon-wrap">
+                    <AlertTriangle size={32} />
+                  </div>
+                  <div>
+                    <h4 className="text-rose font-bold text-lg mb-1">Institutional Protocol Terminated</h4>
+                    <p className="text-slate-400 text-sm max-w-md">
+                      Your recovery request has been <span className="text-rose font-bold">REJECTED</span> by the beneficiary bank nodal officer. The intelligence payload was flagged as a redundant or spam request.
+                    </p>
+                  </div>
                 </div>
-                <div className="current-state-badge">{intel?.current_status}</div>
-              </div>
-              <div className="horizontal-timeline">
-                {milestones.map((milestone, idx) => {
-                  const status = getMilestoneStatus(milestone.state);
-                  return (
-                    <React.Fragment key={milestone.label}>
-                      <div className={`timeline-node ${status}`}>
-                        <div className="dot">
-                          {status === 'completed' && <CheckCircle2 size={10} />}
-                          {status === 'current' && <Loader2 size={10} className="spin" />}
+              </motion.div>
+            ) : (
+              <motion.div className="ent-card" variants={itemVariants}>
+                <div className="card-header">
+                  <div className="title-pair">
+                    <Activity size={14} className="icon-blue" />
+                    <h4>Live Recovery Timeline</h4>
+                  </div>
+                  <div className="current-state-badge">{intel?.current_status}</div>
+                </div>
+                <div className="horizontal-timeline">
+                  {milestones.map((milestone, idx) => {
+                    const status = getMilestoneStatus(milestone.state);
+                    return (
+                      <React.Fragment key={milestone.label}>
+                        <div className={`timeline-node ${status}`}>
+                          <div className="dot">
+                            {status === 'completed' && <CheckCircle2 size={10} />}
+                            {status === 'current' && <Loader2 size={10} className="spin" />}
+                          </div>
+                          <div className="node-info">
+                            <span className="node-label">{milestone.label}</span>
+                            <span className="node-status text-muted">{status.toUpperCase()}</span>
+                          </div>
                         </div>
-                        <div className="node-info">
-                          <span className="node-label">{milestone.label}</span>
-                          <span className="node-status text-muted">{status.toUpperCase()}</span>
-                        </div>
-                      </div>
-                      {idx < milestones.length - 1 && <div className="timeline-connector"></div>}
-                    </React.Fragment>
-                  );
-                })}
-              </div>
-            </motion.div>
+                        {idx < milestones.length - 1 && <div className="timeline-connector"></div>}
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
 
             <div className="background-graph-wrap">
                <svg width="100%" height="60" viewBox="0 0 1000 60" preserveAspectRatio="none">
@@ -699,12 +730,17 @@ const Dashboard = () => {
 
         .timeline-node.completed .dot { background: var(--accent-blue); color: white; border-color: var(--accent-blue); }
         .timeline-node.current .dot { border-color: var(--accent-blue); background: #0061FF20; }
+        .timeline-node.rejected .dot { background: var(--accent-red); color: white; border-color: var(--accent-red); box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+        .timeline-node.disabled { opacity: 0.2; }
+        .timeline-node.disabled .dot { border-color: var(--text-muted); }
 
         .node-info { text-align: center; }
         .node-label { display: block; font-size: 0.75rem; font-weight: 700; color: white; white-space: nowrap; }
         .node-status { display: block; font-size: 0.65rem; font-weight: 800; color: var(--text-muted); margin-top: 0.15rem; }
+        .timeline-node.rejected .node-status { color: var(--accent-red); }
 
         .timeline-connector { flex-grow: 1; height: 1px; background: var(--border); margin: 0 0.5rem; transform: translateY(-13px); }
+        .timeline-node.completed + .timeline-connector { background: var(--accent-blue); opacity: 0.5; }
 
         /* Sidebar Matrix */
         .node-stack { display: flex; flex-direction: column; gap: 0.75rem; }
@@ -845,6 +881,23 @@ const Dashboard = () => {
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+        .rejected-notice-card {
+          border-left: 3px solid var(--accent-red) !important;
+          background: linear-gradient(135deg, rgba(244, 63, 94, 0.05) 0%, rgba(15, 23, 42, 0.5) 100%) !important;
+          padding: 2.5rem !important;
+        }
+        .rejected-icon-wrap {
+          width: 64px;
+          height: 64px;
+          background: rgba(244, 63, 94, 0.1);
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--accent-red);
+          border: 1px solid rgba(244, 63, 94, 0.2);
+        }
       `}</style>
     </div>
   );

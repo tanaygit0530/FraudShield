@@ -15,7 +15,7 @@ import { supabase } from '../lib/supabase';
 
 const AdminDashboard = () => {
   const [user, setUser] = useState(null);
-  const [loginForm, setLoginForm] = useState({ username: '', role: 'FRAUD_OFFICER' });
+  const [loginForm, setLoginForm] = useState({ username: '', role: 'NODAL_OFFICER' });
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [cases, setCases] = useState([]);
   const [stats, setStats] = useState(null);
@@ -59,6 +59,16 @@ const AdminDashboard = () => {
       };
     }
   }, [user]);
+
+  // Keep selectedCase in sync with cases list
+  useEffect(() => {
+    if (selectedCase && cases.length > 0) {
+      const freshCase = cases.find(c => c.id === selectedCase.id);
+      if (freshCase && JSON.stringify(freshCase) !== JSON.stringify(selectedCase)) {
+        setSelectedCase(freshCase);
+      }
+    }
+  }, [cases, selectedCase]);
 
   const fetchGateTelemetry = async () => {
     try {
@@ -139,9 +149,7 @@ const AdminDashboard = () => {
       // 1. Update Status to ESCALATED
       await caseService.escalateCase(selectedCase.id);
       
-      // 2. Generate and Send Legal PDF (same as user dashboard used to do)
-      await caseService.generateAndSendLegalPDF(selectedCase.id, 'Beneficiary Bank');
-      
+      // 2. Refresh so the sync effect updates the selectedCase status
       await fetchDashboardData();
       alert('Escalation Protocol Initialized. Legal Request Dispatched to Nodal Officer.');
     } catch (err) {
@@ -162,8 +170,8 @@ const AdminDashboard = () => {
         officer_name: user.username
       });
       setShowPartialModal(false);
+      // Refresh list, the sync effect will update selectedCase with the new status
       await fetchDashboardData();
-      setSelectedCase(null);
     } catch (err) {
       console.error('Action Failed:', err.response?.data || err.message);
       alert('Communication error: ' + (err.response?.data?.error || err.message));
