@@ -1,9 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { UserCheck, RefreshCw } from 'lucide-react';
+import { UserCheck, RefreshCw, LogOut } from 'lucide-react';
 import { ROLES } from '../../constants/roles';
 
-const AdminHeader = ({ user, onRefresh, isSyncing }) => {
+const AdminHeader = ({ user, onRefresh, onLogout, isSyncing }) => {
   return (
     <header className="admin-header container">
       <div className="flex justify-between items-end">
@@ -42,11 +42,19 @@ const AdminHeader = ({ user, onRefresh, isSyncing }) => {
           <div className="profile-icon-wrap">
             <UserCheck size={18} />
           </div>
-          <div className="profile-info">
+          <div className="profile-info mr-4">
             <div className="profile-name">{user.username}</div>
             <div className="profile-role">{ROLES[user.role]?.name}</div>
           </div>
           <div className="status-indicator online"></div>
+          
+          <button 
+            className="logout-action hover:text-rose transition-colors pl-4 border-l border-white/10"
+            onClick={onLogout}
+            title="Terminate Session"
+          >
+            <LogOut size={16} />
+          </button>
         </motion.div>
       </div>
     </header>

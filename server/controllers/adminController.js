@@ -11,7 +11,7 @@ exports.getAnalytics = async (req, res) => {
       full_freeze: cases.filter(c => c.status === 'FREEZE_CONFIRMED').length,
       partial_freeze: cases.filter(c => c.status === 'PARTIALLY_FROZEN').length,
       rejected: cases.filter(c => c.status === 'REJECTED').length,
-      total_recovered: cases.reduce((sum, c) => sum + (c.frozen_amount || 0), 0)
+      total_recovered: cases.reduce((sum, c) => sum + (parseFloat(c.frozen_amount) || 0), 0)
     };
 
     console.log(`[ANALYTICS] Summary: ${stats.total_cases} cases, ${stats.total_recovered} recovered.`);
@@ -24,13 +24,20 @@ exports.getAnalytics = async (req, res) => {
 
 exports.getAuditLogs = async (req, res) => {
   try {
+    // UPDATED: Using 'timestamp' as per user schema instead of 'created_at'
     const { data, error } = await supabase
       .from('audit_logs')
       .select('*, cases(amount)')
-      .order('created_at', { ascending: false })
+      .order('timestamp', { ascending: false })
       .limit(50);
     
-    if (error) throw error;
+    if (error) {
+      console.warn('[AUDIT_ERROR] Initial fetch failed, trying without sort', error.message);
+      const { data: fallback, error: fError } = await supabase.from('audit_logs').select('*, cases(amount)').limit(50);
+      if (fError) throw fError;
+      return res.json(fallback || []);
+    }
+
     console.log(`[AUDIT] Yielded ${data ? data.length : 0} logs.`);
     res.json(data || []);
   } catch (err) {

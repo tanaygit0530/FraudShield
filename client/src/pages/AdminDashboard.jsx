@@ -74,17 +74,42 @@ const AdminDashboard = () => {
       setSyncError(null);
       setIsUpdating(true);
       console.log('--- ADMIN_SYNC_START ---');
-      const [casesRes, statsRes, auditRes] = await Promise.all([
-        caseService.getCases(),
-        adminService.getAnalytics(),
-        adminService.getAuditLogs()
-      ]);
-      console.log('SYNC_DATA:', { cases: casesRes.data, stats: statsRes.data, audit: auditRes.data });
-      setCases(casesRes.data);
-      setStats(statsRes.data);
-      setAuditLogs(auditRes.data);
+
+      // Individual fetches to prevent failure of one from breaking all
+      const fetchCases = async () => {
+        try {
+          const res = await caseService.getCases();
+          setCases(res.data || []);
+        } catch (e) {
+          console.error("Cases fetch failed", e.response?.data || e.message);
+          setSyncError("Failed to fetch triage queue: " + (e.response?.data?.error || e.message));
+        }
+      };
+
+      const fetchStats = async () => {
+        try {
+          const res = await adminService.getAnalytics();
+          setStats(res.data);
+        } catch (e) {
+          console.error("Stats fetch failed", e.response?.data || e.message);
+        }
+      };
+
+      const fetchAudit = async () => {
+        try {
+          const res = await adminService.getAuditLogs();
+          console.log('[DEBUG_AUDIT] Received:', res.data);
+          setAuditLogs(res.data || []);
+        } catch (e) {
+          console.error("Audit logs fetch failed", e.response?.data || e.message);
+        }
+      };
+
+      await Promise.allSettled([fetchCases(), fetchStats(), fetchAudit()]);
+      
+      console.log('SYNC_DATA_CONCLUDED');
     } catch (err) {
-      console.error('Sync Error:', err);
+      console.error('Core Sync Failure:', err);
       setSyncError(err.message || 'Failed to sync with node');
     } finally {
       setIsUpdating(false);
@@ -101,6 +126,32 @@ const AdminDashboard = () => {
     }, 2000);
   };
 
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('admin_session');
+    // Optional: Refresh data to clear any sensitive state
+  };
+
+  const handleEscalate = async () => {
+    if (!selectedCase || isUpdating) return;
+    setIsUpdating(true);
+    try {
+      // 1. Update Status to ESCALATED
+      await caseService.escalateCase(selectedCase.id);
+      
+      // 2. Generate and Send Legal PDF (same as user dashboard used to do)
+      await caseService.generateAndSendLegalPDF(selectedCase.id, 'Beneficiary Bank');
+      
+      await fetchDashboardData();
+      alert('Escalation Protocol Initialized. Legal Request Dispatched to Nodal Officer.');
+    } catch (err) {
+      console.error('Escalation Failed:', err.response?.data || err.message);
+      alert('Escalation failed: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const handleUpdateStatus = async (status, extra = {}) => {
     if (!selectedCase) return;
     setIsUpdating(true);
@@ -114,7 +165,8 @@ const AdminDashboard = () => {
       await fetchDashboardData();
       setSelectedCase(null);
     } catch (err) {
-      alert('Communication error with node.');
+      console.error('Action Failed:', err.response?.data || err.message);
+      alert('Communication error: ' + (err.response?.data?.error || err.message));
     } finally {
       setIsUpdating(false);
     }
@@ -139,7 +191,8 @@ const AdminDashboard = () => {
       <AdminHeader 
         user={user} 
         onRefresh={fetchDashboardData} 
-        isSyncing={isUpdating} // Using isUpdating as proxy for sync state or could add a new state
+        onLogout={handleLogout}
+        isSyncing={isUpdating} 
       />
       
       {syncError && (
@@ -166,6 +219,7 @@ const AdminDashboard = () => {
           user={user}
           isUpdating={isUpdating}
           handleUpdateStatus={handleUpdateStatus}
+          handleEscalate={handleEscalate}
           setShowPartialModal={setShowPartialModal}
         />
       </main>

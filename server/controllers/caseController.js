@@ -80,7 +80,7 @@ exports.getCaseIntelligence = async (req, res) => {
     // Dynamic Recovery Logic
     if (currentStatus === 'FREEZE_CONFIRMED') recoveryProbability = 100;
     if (currentStatus === 'PARTIALLY_FROZEN' && caseData.frozen_amount) {
-      recoveryProbability = Math.min(100, (caseData.frozen_amount / caseData.amount) * 100);
+      recoveryProbability = Math.min(100, (parseFloat(caseData.frozen_amount) / parseFloat(caseData.amount)) * 100);
     }
     if (currentStatus === 'FUNDS_CREDITED') recoveryProbability = 100;
 
@@ -161,7 +161,7 @@ exports.ingestOCR = async (req, res) => {
 
 exports.createCase = async (req, res) => {
   try {
-    const { victim_id, payload } = req.body;
+    const { payload } = req.body;
     console.log('--- Creating New Fraud Case ---');
 
     const protectedPayload = {
@@ -183,11 +183,13 @@ exports.createCase = async (req, res) => {
 
     if (error) throw error;
 
-    supabase.from('audit_logs').insert([{ 
+    // UPDATED: Corrected audit_logs col schema
+    await supabase.from('audit_logs').insert([{ 
       case_id: data[0].id, 
       action: 'INGESTION_COMPLETE', 
-      status: 'SUCCESS' 
-    }]).then(() => console.log('Audit Logged'));
+      status: 'SUCCESS',
+      metadata: { event: 'INITIAL_REPORT' }
+    }]);
 
     res.status(201).json(data[0]);
   } catch (err) {
@@ -219,9 +221,12 @@ exports.updateCaseStatus = async (req, res) => {
     
     console.log(`--- [ADMIN] Updating Case ${id} to ${status} ---`);
 
-    const updatePayload = { status };
-    if (frozen_amount !== undefined) updatePayload.frozen_amount = frozen_amount;
-    if (total_balance !== undefined) updatePayload.total_balance = total_balance;
+    const updatePayload = { 
+        status,
+        updated_at: new Date()
+    };
+    if (frozen_amount !== undefined) updatePayload.frozen_amount = parseFloat(frozen_amount);
+    if (total_balance !== undefined) updatePayload.total_balance = parseFloat(total_balance);
 
     const { data, error } = await supabase
       .from('cases')
@@ -238,15 +243,20 @@ exports.updateCaseStatus = async (req, res) => {
       });
     }
 
+    // UPDATED: Corrected audit_logs schema as per user's SQL
     await supabase.from('audit_logs').insert([{
       case_id: id,
       action: `BANK_ACTION_${status}`,
       status: 'SUCCESS',
-      admin_name: officer_name || 'SYSTEM'
+      metadata: { 
+          admin_name: officer_name || 'SYSTEM',
+          frozen_val: frozen_amount || 0
+      }
     }]);
 
     res.json(data[0]);
   } catch (err) {
+    console.error('[SERVER_UPDATE_ERROR]', err);
     res.status(500).json({ error: err.message });
   }
 };

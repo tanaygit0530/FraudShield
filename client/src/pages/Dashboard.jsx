@@ -50,13 +50,11 @@ const Dashboard = () => {
   const [caseItem, setCaseItem] = useState(null);
   const [intel, setIntel] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isEscalating, setIsEscalating] = useState(false);
   const [timeLeft, setTimeLeft] = useState(120 * 60);
   const { id } = useParams();
 
   const fetchIntelData = async (targetCase) => {
     try {
-      if (isEscalating) return;
       const intelRes = await caseService.getCaseIntelligence(targetCase.id);
       
       setIntel(prev => {
@@ -94,7 +92,7 @@ const Dashboard = () => {
               (payload) => {
                 console.log('Live Case Update:', payload);
                 setCaseItem(payload.new);
-                fetchIntelData(targetCase);
+                fetchIntelData(payload.new);
               }
             )
             .subscribe();
@@ -141,29 +139,7 @@ const Dashboard = () => {
   };
   const recoveryStatus = getRecoveryStatus(intel?.recovery_probability);
 
-  const handleEscalate = async () => {
-    try {
-      if (!caseItem || isEscalating) return;
-      setIsEscalating(true);
-      
-      // 1. Immediate DB Update
-      await caseService.escalateCase(caseItem.id);
-      
-      // 2. Immediate Local State Update (Don't wait for PDF)
-      // This solves the 'flickering' and 'reverting' issue in the UI
-      setIntel(prev => ({ ...prev, current_status: 'ESCALATED' }));
-      setCaseItem(prev => ({ ...prev, status: 'ESCALATED' }));
-
-      // 3. Background Legal PDF & Dispatch
-      await caseService.generateAndSendLegalPDF(caseItem.id, 'Beneficiary Bank');
-
-    } catch (err) {
-      console.error('Escalation or PDF Generation failed', err);
-      alert('Action failed. Ensure you have added the UPDATE policy to your Supabase cases table.');
-    } finally {
-      setIsEscalating(false);
-    }
-  };
+  // handleEscalate removed - Moved to Admin Terminal
 
   const milestones = [
     { label: 'Fraud Reported', state: 'CREATED' },
@@ -440,35 +416,7 @@ const Dashboard = () => {
               </div>
             </motion.div>
 
-            <motion.div className="ent-card sidebar-card highlight-card" variants={itemVariants}>
-              <div className="card-header border-none mb-2">
-                 <div className="title-pair">
-                    <Shield size={14} className="icon-blue" />
-                    <h4>Human-in-the-Loop</h4>
-                 </div>
-              </div>
-              <p className="sidebar-text">Direct intervention protocol for high-value recoveries or complex nodes.</p>
-              <button 
-                onClick={handleEscalate}
-                disabled={intel?.current_status === 'ESCALATED' || isEscalating}
-                className="btn-escalate"
-              >
-                {isEscalating ? (
-                  <><Loader2 size={12} className="spin mr-2" /> Initializing Interdiction...</>
-                ) : (
-                  intel?.current_status === 'ESCALATED' ? 'ESCALATED TO FIU' : 'Escalate to FIU/Ombudsman'
-                )}
-              </button>
-
-              {intel?.current_status === 'ESCALATED' && (
-                <button 
-                  onClick={() => window.open(`http://localhost:5001/api/cases/${caseItem.id}/download-legal`, '_blank')}
-                  className="btn-download-pdf"
-                >
-                  <FileLock2 size={12} /> Download Legal Request
-                </button>
-              )}
-            </motion.div>
+            {/* Human-in-the-Loop removed - Moved to Admin Terminal */}
 
             <motion.div className="ent-card sidebar-card" variants={itemVariants}>
               <div className="card-header border-none mb-4">
