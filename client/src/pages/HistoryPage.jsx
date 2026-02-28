@@ -5,7 +5,7 @@ import {
   CheckCircle, Clock, AlertCircle, FileText,
   ShieldAlert, RefreshCw
 } from 'lucide-react';
-import axios from 'axios';
+import * as caseService from '../services/caseService';
 import { Link } from 'react-router-dom';
 
 const HistoryPage = () => {
@@ -16,7 +16,8 @@ const HistoryPage = () => {
 
   const fetchCases = async () => {
     try {
-      const { data } = await axios.get('http://localhost:5001/api/cases');
+      const response = await caseService.getCases();
+      const data = response.data;
       // Sort by newest first
       setCases(data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
       setLoading(false);

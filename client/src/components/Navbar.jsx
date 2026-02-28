@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Shield } from 'lucide-react';
+import '../styles/Navbar.css';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -33,40 +34,6 @@ const Navbar = () => {
           <Link to="/report" className="btn-primary nav-cta">Report Fraud</Link>
         </div>
       </div>
-      
-      <style>{`
-        .logo {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          font-family: 'Outfit', sans-serif;
-          font-size: 1.5rem;
-          font-weight: 700;
-        }
-        .logo-icon { color: var(--primary); }
-        .logo span span { color: var(--primary); }
-        
-        .nav-links {
-          display: flex;
-          align-items: center;
-          gap: 2rem;
-        }
-        .nav-links a:not(.btn-primary) {
-          color: var(--text-muted);
-          font-weight: 500;
-          font-size: 0.95rem;
-        }
-        .nav-links a:not(.btn-primary):hover, .nav-links a.active {
-          color: var(--text-main);
-        }
-        .nav-cta {
-          padding: 0.6rem 1.4rem !important;
-          font-size: 0.9rem;
-        }
-        @media (max-width: 768px) {
-          .nav-links a:not(.btn-primary) { display: none; }
-        }
-      `}</style>
     </nav>
   );
 };
