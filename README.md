@@ -54,6 +54,7 @@ Navigate to the homepage and click **"Report Fraud"**.
 ### Intelligence Upload (OCR)
 Upload a screenshot of your transaction (UPI screen or SMS).  
 Our Gemini 1.5 Flash AI will automatically parse the UTR, Amount, Beneficiary VPA, and Bank Name in real-time.
+If OCR is not operational or fails to extract the required details, you can manually enter the transaction information to proceed with the report.
 
 ### Identity Verification
 Enter your mobile number to receive a secure OTP.  
