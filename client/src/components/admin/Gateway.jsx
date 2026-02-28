@@ -68,8 +68,8 @@ const Gateway = ({ loginForm, setLoginForm, handleLogin, isAuthenticating, gateS
               <div className="terminal-input-group">
                 <div className="flex justify-between items-center">
                   <label>CLEARANCE_LEVEL</label>
-                  <span className={`status-pill-small ${loginForm.role.toLowerCase()}`}>
-                    {loginForm.role === 'FRAUD_OFFICER' ? '🟢 TIER_1' : loginForm.role === 'SENIOR_OFFICER' ? '🟡 TIER_2' : '🔴 TIER_3'}
+                  <span className="status-pill-small nodal_officer">
+                    🔴 TIER_3
                   </span>
                 </div>
                 <div className="input-wrapper">
@@ -78,9 +78,7 @@ const Gateway = ({ loginForm, setLoginForm, handleLogin, isAuthenticating, gateS
                     value={loginForm.role}
                     onChange={(e) => setLoginForm({...loginForm, role: e.target.value})}
                   >
-                    <option value="FRAUD_OFFICER">Fraud Officer (TIER_1)</option>
-                    <option value="SENIOR_OFFICER">Senior Nodal (TIER_2)</option>
-                    <option value="SUPERVISOR">Operations Lead (TIER_3)</option>
+                    <option value="NODAL_OFFICER">Nodal Officer (TIER_3)</option>
                   </select>
                 </div>
               </div>

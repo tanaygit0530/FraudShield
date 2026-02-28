@@ -19,7 +19,7 @@ const AdminHeader = ({ user, onRefresh, onLogout, isSyncing }) => {
           </motion.div>
           <h1 className="title-gradient-major">B2B <span className="text-cobalt">Triage Center</span></h1>
           <div className="institutional-meta">
-            <span className="meta-tag">FR-OPS // {user.role}</span>
+            <span className="meta-tag">FR-OPS // {ROLES[user.role]?.name || user.role}</span>
             <span className="meta-divider"></span>
             <span className="meta-tag mono">TXN_ID: {Math.random().toString(36).slice(2, 10).toUpperCase()}</span>
             <span className="meta-divider"></span>

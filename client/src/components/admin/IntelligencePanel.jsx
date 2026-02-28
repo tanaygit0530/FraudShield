@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   History, ArrowLeft, ShieldCheck, PieChart, XCircle, ExternalLink, Shield, ChevronRight,
-  Loader2, FileLock2
+  Loader2, FileLock2, Clock
 } from 'lucide-react';
 import { ROLES } from '../../constants/roles';
 
@@ -71,10 +71,26 @@ const IntelligencePanel = ({
               <section className="ops-section">
                 <div className="section-label">COMMAND_CENTER</div>
                 <div className="action-grid-ops">
+                  {/* Phase 1: Initiation (Automatic INGESTED -> FREEZE_SENT) */}
+                  {selectedCase.status === 'FREEZE_SENT' && (
+                    <button 
+                      className="op-btn op-freeze"
+                      onClick={() => handleUpdateStatus('BANK_REVIEW')}
+                      disabled={isUpdating}
+                    >
+                      <div className="op-icon"><ShieldCheck size={18} className="text-emerald" /></div>
+                      <div className="op-text">
+                        <span className="op-title">ACCEPT_FREEZE_REQUEST</span>
+                        <span className="op-sub">Begin operational bank review</span>
+                      </div>
+                    </button>
+                  )}
+
+                  {/* Phase 2: Bank Actions (ONLY ALLOWED during BANK_REVIEW) */}
                   <button 
                     className="op-btn op-freeze"
                     onClick={() => handleUpdateStatus('FREEZE_CONFIRMED', { frozen_amount: selectedCase.amount })}
-                    disabled={isUpdating || !ROLES[user.role].permissions?.includes('FREEZE')}
+                    disabled={isUpdating || selectedCase.status !== 'BANK_REVIEW'}
                   >
                     <div className="op-icon"><ShieldCheck size={18} /></div>
                     <div className="op-text">
@@ -86,7 +102,7 @@ const IntelligencePanel = ({
                   <button 
                     className="op-btn op-partial"
                     onClick={() => setShowPartialModal(true)}
-                    disabled={isUpdating || !ROLES[user.role].permissions?.includes('FREEZE')}
+                    disabled={isUpdating || selectedCase.status !== 'BANK_REVIEW'}
                   >
                     <div className="op-icon"><PieChart size={18} /></div>
                     <div className="op-text">
@@ -98,11 +114,11 @@ const IntelligencePanel = ({
                   <button 
                     className="op-btn op-reject"
                     onClick={() => handleUpdateStatus('REJECTED')}
-                    disabled={isUpdating || !ROLES[user.role].permissions?.includes('REJECT')}
+                    disabled={isUpdating || selectedCase.status !== 'BANK_REVIEW'}
                   >
                     <div className="op-icon"><XCircle size={18} /></div>
                     <div className="op-text">
-                      <span className="op-title">DISMISS_INTELLIGENCE</span>
+                      <span className="op-title">REJECT_CASE</span>
                       <span className="op-sub">Mark as false-positive</span>
                     </div>
                   </button>
@@ -115,12 +131,21 @@ const IntelligencePanel = ({
                         <button 
                           className={`btn-authoritative ghost`}
                           onClick={handleEscalate}
-                          disabled={isUpdating || selectedCase.status === 'ESCALATED'}
+                          disabled={isUpdating || !['FREEZE_CONFIRMED', 'PARTIALLY_FROZEN'].includes(selectedCase.status)}
                         >
                           {isUpdating ? <><Loader2 size={12} className="animate-spin" /> INITIALIZING...</> : (selectedCase.status === 'ESCALATED' ? 'ESCALATED_TO_FIU' : 'TRIGGER_FIU_ESCALATION')}
                         </button>
 
                         {selectedCase.status === 'ESCALATED' && (
+                          <button 
+                            className="btn-authoritative primary"
+                            onClick={() => handleUpdateStatus('FUNDS_CREDITED')}
+                          >
+                            <ShieldCheck size={14} /> MARK_FUNDS_CREDITED
+                          </button>
+                        )}
+
+                        {['ESCALATED', 'FUNDS_CREDITED'].includes(selectedCase.status) && (
                           <button 
                             className="btn-authoritative primary"
                             onClick={() => window.open(`http://localhost:5001/api/cases/${selectedCase.id}/download-legal`, '_blank')}

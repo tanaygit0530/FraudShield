@@ -1,17 +1,7 @@
 export const ROLES = {
-  FRAUD_OFFICER: { 
-    name: 'Fraud Officer', 
-    clearance: 1,
-    permissions: ['VIEW', 'REJECT'] 
-  },
-  SENIOR_OFFICER: { 
-    name: 'Senior Nodal', 
-    clearance: 2,
-    permissions: ['VIEW', 'REJECT', 'FREEZE'] 
-  },
-  SUPERVISOR: { 
-    name: 'Operations Lead', 
+  NODAL_OFFICER: { 
+    name: 'Nodal Officer', 
     clearance: 3,
-    permissions: ['VIEW', 'REJECT', 'FREEZE', 'ADMIN'] 
+    permissions: ['VIEW', 'REJECT', 'FREEZE', 'ADMIN', 'ESCALATE', 'CLOSE'] 
   }
 };
