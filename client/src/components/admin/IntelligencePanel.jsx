@@ -108,24 +108,24 @@ const IntelligencePanel = ({
                   </button>
 
                   <div className="mt-8 pt-6 border-t border-white/5 h-in-loop-node">
-                     <div className="section-label mb-3 flex items-center gap-2"><Shield size={12} className="text-blue" /> HUMAN-IN-THE-LOOP</div>
-                     <p className="text-[0.65rem] text-slate-500 mb-4 leading-relaxed">Direct intervention protocol for high-value recoveries or complex nodes.</p>
+                     <div className="section-label mb-3 flex items-center gap-2"><Shield size={12} className="text-[#3b82f6]" /> HUMAN-IN-THE-LOOP_PROTOCOL</div>
+                     <p className="text-[0.65rem] text-slate-500 mb-5 leading-relaxed font-medium">Authoritative interdiction for high-value nodes and institutional recovery.</p>
                      
                      <div className="flex flex-col gap-3">
                         <button 
-                          className={`w-full p-3 rounded-xl border font-bold text-[0.7rem] transition-all flex items-center justify-center gap-2 ${selectedCase.status === 'ESCALATED' ? 'bg-slate-800/10 border-white/5 text-slate-500' : 'bg-blue-500/5 border-blue-500/20 text-blue-400 hover:bg-blue-500/10'}`}
+                          className={`btn-authoritative ghost`}
                           onClick={handleEscalate}
                           disabled={isUpdating || selectedCase.status === 'ESCALATED'}
                         >
-                          {isUpdating ? <><Loader2 size={12} className="animate-spin" /> INITIALIZING...</> : (selectedCase.status === 'ESCALATED' ? 'ESCALATED TO FIU' : 'ESCALATE TO FIU / OMBUDSMAN')}
+                          {isUpdating ? <><Loader2 size={12} className="animate-spin" /> INITIALIZING...</> : (selectedCase.status === 'ESCALATED' ? 'ESCALATED_TO_FIU' : 'TRIGGER_FIU_ESCALATION')}
                         </button>
 
                         {selectedCase.status === 'ESCALATED' && (
                           <button 
-                            className="w-full p-3 rounded-xl bg-blue-500 border border-blue-400 text-white font-bold text-[0.7rem] flex items-center justify-center gap-2 hover:bg-blue-600 transition-all shadow-[0_0_20px_rgba(59,130,246,0.3)]"
+                            className="btn-authoritative primary"
                             onClick={() => window.open(`http://localhost:5001/api/cases/${selectedCase.id}/download-legal`, '_blank')}
                           >
-                            <FileLock2 size={12} /> DOWNLOAD LEGAL REQUEST
+                            <FileLock2 size={14} /> DOWNLOAD_LEGAL_LIEN
                           </button>
                         )}
                      </div>
@@ -136,18 +136,18 @@ const IntelligencePanel = ({
                       href={`/dashboard/${selectedCase.id}`} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="flex items-center justify-between p-4 rounded-xl bg-blue-500/5 border border-blue-500/20 hover:bg-blue-500/10 transition-all group"
+                      className="bridge-card-tactical"
                      >
-                       <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
-                            <ExternalLink size={14} />
+                       <div className="flex items-center gap-4">
+                          <div className="bridge-icon-wrap">
+                            <ExternalLink size={16} />
                           </div>
                           <div>
-                            <div className="text-[0.7rem] font-bold text-blue-500 uppercase tracking-wider">Live Bridge</div>
-                            <div className="text-xs text-slate-400">View Public Recovery Interface</div>
+                            <div className="bridge-label-minor">Operational Bridge</div>
+                            <div className="bridge-label-major font-mono uppercase tracking-tighter">Live Recovery Feed</div>
                           </div>
                        </div>
-                       <ChevronRight size={14} className="text-slate-600 group-hover:translate-x-1 transition-transform" />
+                       <ChevronRight size={14} className="text-[#3b82f6]/40" />
                      </a>
                   </div>
           </div>

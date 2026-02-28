@@ -285,7 +285,79 @@
   border: 1px solid rgba(244, 63, 94, 0.2); font-size: 0.65rem;
 }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+/* Tactical Button System */
+.btn-authoritative {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
 }
+
+.btn-authoritative.primary {
+  background: linear-gradient(135deg, var(--cobalt) 0%, #2563eb 100%);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+.btn-authoritative.primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);
+  filter: brightness(1.1);
+}
+
+.btn-authoritative.ghost {
+  background: rgba(255, 255, 255, 0.03);
+  color: #64748b;
+  border: 1px solid var(--glass-border);
+}
+.btn-authoritative.ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-authoritative:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+/* Forensic Bridge Card */
+.bridge-card-tactical {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem;
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.08) 0%, transparent 100%);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  border-radius: 14px;
+  transition: all 0.3s;
+  text-decoration: none !important;
+}
+.bridge-card-tactical:hover {
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.02) 100%);
+  border-color: var(--cobalt);
+  transform: translateX(4px);
+}
+.bridge-icon-wrap {
+  width: 40px;
+  height: 40px;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cobalt);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+.bridge-label-major { font-size: 0.75rem; font-weight: 800; color: white; letter-spacing: 0.05em; margin-bottom: 0.2rem; }
+.bridge-label-minor { font-size: 0.6rem; color: #64748b; font-weight: 600; text-transform: uppercase; }
