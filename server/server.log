@@ -1,0 +1,74 @@
+[2026-02-28T05:50:48.532Z] POST /api/otp/generate - Body: {"phone":"TEST_LOG"}
+[2026-02-28T05:51:37.220Z] POST /api/otp/generate - Body: {"phone":"8591784184"}
+[2026-02-28T05:51:55.102Z] POST /api/otp/verify - Body: {"phone":"8591784184","code":"560648"}
+[2026-02-28T05:53:51.830Z] POST /api/otp/generate - Body: {"phone":"TERMINAL_TEST_2"}
+
+-------------------------------------------
+[AUTH] DIRECT_LOG_TRIGGERED for: TERMINAL_TEST_2
+[AUTH] GENERATED_OTP: 502499 <<<<<<<<<<<<<<
+-------------------------------------------
+[2026-02-28T05:54:43.412Z] POST /api/otp/generate - Body: {"phone":"8591784184"}
+
+-------------------------------------------
+[AUTH] DIRECT_LOG_TRIGGERED for: 8591784184
+[AUTH] GENERATED_OTP: 645079 <<<<<<<<<<<<<<
+-------------------------------------------
+[2026-02-28T05:54:54.494Z] POST /api/otp/verify - Body: {"phone":"8591784184","code":"645079"}
+[2026-02-28T05:54:54.746Z] POST /api/cases - Body: {"payload":{"txn_id":"txn4234123234","amount":"200000","utr":"42312342","beneficiary_vpa":"UPI","bank_name":"BOB","incident_date":"2026-02-28","legitimacy_score":50,"phone":"8591784184","entry_method":"manual"},"origin":"MANUAL"}
+[2026-02-28T05:54:55.046Z] GET /api/cases - Body: undefined
+[2026-02-28T05:54:55.147Z] GET /api/cases/7f48c988-7009-4108-b3df-910902aeafd7/intelligence - Body: undefined
+[2026-02-28T05:55:03.358Z] GET /api/admin/analytics - Body: undefined
+[2026-02-28T05:55:03.382Z] GET /api/cases - Body: undefined
+[2026-02-28T05:55:03.384Z] GET /api/admin/audit-logs - Body: undefined
+[2026-02-28T05:55:44.278Z] GET /api/cases - Body: undefined
+[2026-02-28T05:55:45.196Z] GET /api/cases/7f48c988-7009-4108-b3df-910902aeafd7/intelligence - Body: undefined
+[2026-02-28T05:55:52.130Z] GET /api/admin/analytics - Body: undefined
+[2026-02-28T05:55:52.152Z] GET /api/cases - Body: undefined
+[2026-02-28T05:55:52.160Z] GET /api/admin/audit-logs - Body: undefined
+[2026-02-28T05:56:21.752Z] GET /api/cases - Body: undefined
+[2026-02-28T05:56:21.766Z] GET /api/admin/analytics - Body: undefined
+[2026-02-28T05:56:21.769Z] GET /api/admin/audit-logs - Body: undefined
+[2026-02-28T05:56:38.847Z] PATCH /api/cases/7f48c988-7009-4108-b3df-910902aeafd7/status - Body: {"status":"FREEZE_CONFIRMED","frozen_amount":200000,"officer_name":"Tanay"}
+[2026-02-28T05:56:39.131Z] GET /api/admin/analytics - Body: undefined
+[2026-02-28T05:56:39.135Z] GET /api/cases - Body: undefined
+[2026-02-28T05:56:39.139Z] GET /api/admin/audit-logs - Body: undefined
+[2026-02-28T05:56:39.190Z] GET /api/cases - Body: undefined
+[2026-02-28T05:56:39.195Z] GET /api/admin/analytics - Body: undefined
+[2026-02-28T05:56:39.199Z] GET /api/admin/audit-logs - Body: undefined
+[2026-02-28T06:00:00.349Z] GET /api/cases - Body: undefined
+[2026-02-28T06:00:00.360Z] GET /api/cases - Body: undefined
+[2026-02-28T06:00:01.407Z] GET /api/cases/7f48c988-7009-4108-b3df-910902aeafd7/intelligence - Body: undefined
+[2026-02-28T06:00:01.407Z] GET /api/cases/7f48c988-7009-4108-b3df-910902aeafd7/intelligence - Body: undefined
+[2026-02-28T06:00:11.606Z] GET /api/admin/analytics - Body: undefined
+[2026-02-28T06:00:11.609Z] GET /api/admin/analytics - Body: undefined
+[2026-02-28T06:00:11.615Z] GET /api/cases - Body: undefined
+[2026-02-28T06:00:11.618Z] GET /api/admin/audit-logs - Body: undefined
+[2026-02-28T06:00:37.039Z] POST /api/cases/7f48c988-7009-4108-b3df-910902aeafd7/escalate - Body: undefined
+[2026-02-28T06:00:37.346Z] POST /api/generate-legal - Body: {"case_id":"7f48c988-7009-4108-b3df-910902aeafd7","institution":"Beneficiary Bank"}
+[2026-02-28T06:00:37.527Z] GET /api/cases - Body: undefined
+[2026-02-28T06:00:37.527Z] GET /api/admin/audit-logs - Body: undefined
+[2026-02-28T06:00:37.528Z] GET /api/admin/analytics - Body: undefined
+[2026-02-28T06:00:42.106Z] GET /api/cases - Body: undefined
+[2026-02-28T06:00:42.108Z] GET /api/admin/analytics - Body: undefined
+[2026-02-28T06:00:42.109Z] GET /api/admin/audit-logs - Body: undefined
+[2026-02-28T06:00:58.073Z] GET /api/admin/analytics - Body: undefined
+[2026-02-28T06:00:58.076Z] GET /api/cases - Body: undefined
+[2026-02-28T06:00:58.080Z] GET /api/admin/audit-logs - Body: undefined
+[2026-02-28T06:01:20.051Z] GET /api/cases/7f48c988-7009-4108-b3df-910902aeafd7/download-legal - Body: undefined
+[2026-02-28T06:01:44.359Z] GET /api/cases - Body: undefined
+[2026-02-28T06:01:44.379Z] GET /api/cases - Body: undefined
+[2026-02-28T06:01:44.721Z] GET /api/cases/7f48c988-7009-4108-b3df-910902aeafd7/intelligence - Body: undefined
+[2026-02-28T06:01:44.722Z] GET /api/cases/7f48c988-7009-4108-b3df-910902aeafd7/intelligence - Body: undefined
+[2026-02-28T06:01:56.489Z] GET /api/admin/analytics - Body: undefined
+[2026-02-28T06:01:56.494Z] GET /api/admin/analytics - Body: undefined
+[2026-02-28T06:01:56.498Z] GET /api/cases - Body: undefined
+[2026-02-28T06:01:56.501Z] GET /api/admin/audit-logs - Body: undefined
+[2026-02-28T06:02:37.932Z] GET /api/cases - Body: undefined
+[2026-02-28T06:02:37.939Z] GET /api/cases - Body: undefined
+[2026-02-28T06:02:39.021Z] GET /api/cases - Body: undefined
+[2026-02-28T06:02:39.022Z] GET /api/cases - Body: undefined
+[2026-02-28T06:02:39.145Z] GET /api/cases/7f48c988-7009-4108-b3df-910902aeafd7/intelligence - Body: undefined
+[2026-02-28T06:02:39.147Z] GET /api/cases/7f48c988-7009-4108-b3df-910902aeafd7/intelligence - Body: undefined
+[2026-02-28T06:02:45.641Z] GET /api/cases - Body: undefined
+[2026-02-28T06:02:45.646Z] GET /api/admin/analytics - Body: undefined
+[2026-02-28T06:02:45.649Z] GET /api/admin/audit-logs - Body: undefined

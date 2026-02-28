@@ -14,6 +14,17 @@ const PORT = process.env.PORT || 5001;
 app.use(cors());
 app.use(express.json());
 
+const fs = require('fs');
+const path = require('path');
+
+// Request Logging Middleware
+app.use((req, res, next) => {
+  const log = `[${new Date().toISOString()}] ${req.method} ${req.url} - Body: ${JSON.stringify(req.body)}\n`;
+  console.log(log.trim());
+  fs.appendFileSync(path.join(__dirname, 'server.log'), log);
+  next();
+});
+
 // Routes
 app.use('/api/cases', caseRoutes);
 app.use('/api', authRoutes);
